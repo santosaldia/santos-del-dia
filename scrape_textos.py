@@ -7,11 +7,14 @@ y guarda textos.json con esta forma:
 Uso:
     pip install requests beautifulsoup4
     python scrape_textos.py --probar 10-05   # prueba un solo día y muestra el pie de foto
-    python scrape_textos.py                  # todos los días (si se corta, reanuda donde iba)
+    python scrape_textos.py                  # todos los días, empezando de cero
+    python scrape_textos.py --reanudar       # continúa con el textos.json que ya exista
 """
 import argparse
 import json
+import re
 import time
+import unicodedata
 from datetime import date, timedelta
 from pathlib import Path
 
@@ -20,7 +23,7 @@ from bs4 import BeautifulSoup
 
 URL = "https://www.vaticannews.va/es/santos/{mm}/{dd}.html"
 SALIDA = Path("textos.json")
-MANUALES = Path("textos_manuales.json")  # textos escritos a mano para días que la web deja vacíos
+MANUALES = Path("textos_manuales.json")  # textos escritos a mano para santos que la web deja sin texto
 CRUZ = "✝️"
 FUENTE = "Fuente: Vatican News"
 LIMITE = 2000  # Instagram admite 2200 caracteres en el pie de foto; dejamos margen
@@ -109,6 +112,27 @@ def construir_pie(santos, limite=LIMITE):
     return "\n\n".join(bloques) + extra
 
 
+def normalizar(texto):
+    """Minúsculas, sin tildes ni signos: para comparar nombres de santos."""
+    t = unicodedata.normalize("NFD", texto.lower())
+    t = "".join(c for c in t if unicodedata.category(c) != "Mn")
+    return re.sub(r"[^a-z0-9]+", " ", t).strip()
+
+
+def aplicar_manuales(datos, manuales):
+    """Aplica textos_manuales.json: si el santo ya está ese día (mismo nombre,
+    sin fijarse en tildes ni mayúsculas) se le cambia el texto; si no, se añade."""
+    for clave, nuevos in manuales.items():
+        actuales = datos.setdefault(clave, [])
+        for nuevo in nuevos:
+            for santo in actuales:
+                if normalizar(santo["nombre"]) == normalizar(nuevo["nombre"]):
+                    santo.update(nuevo)
+                    break
+            else:
+                actuales.append(nuevo)
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--probar", metavar="MM-DD", help="prueba un solo día, p. ej. 10-05")
@@ -135,7 +159,6 @@ def main():
     else:
         datos = {}
     fallos = []
-    sin_texto = []
     dia = date(2024, 1, 1)  # 2024 es bisiesto: así salen los 366 días
     while dia.year == 2024:
         clave = dia.strftime("%m-%d")
@@ -146,29 +169,33 @@ def main():
                 datos[clave] = santos
                 SALIDA.write_text(json.dumps(datos, ensure_ascii=False, indent=1), "utf-8")
                 print(f"{clave}: {len(santos)} santo(s)")
-                for s in santos:
-                    if not s["texto"]:
-                        sin_texto.append(f"{clave} ({s['nombre']})")
             else:
                 fallos.append(clave)
                 print(f"{clave}: SIN DATOS")
             time.sleep(1)  # un segundo entre peticiones, por educación con la web
         dia += timedelta(days=1)
 
-    # Textos escritos a mano: sustituyen por completo a lo que haya en la web ese día
+    # Textos escritos a mano para santos que la web deja sin texto
     if MANUALES.exists():
         manuales = json.loads(MANUALES.read_text("utf-8"))
-        datos.update(manuales)
-        fallos = [d for d in fallos if d not in manuales]
-        sin_texto = [s for s in sin_texto if s.split(" ")[0] not in manuales]
+        aplicar_manuales(datos, manuales)
         print(f"Aplicados textos manuales de: {', '.join(manuales)}")
     SALIDA.write_text(json.dumps(datos, ensure_ascii=False, indent=1), "utf-8")
 
+    fallos = [d for d in fallos if d not in datos]
+    sin_texto = [
+        f"{clave} ({s['nombre']})"
+        for clave, lista in datos.items()
+        for s in lista
+        if not s["texto"]
+    ]
     print(f"\nListo: {len(datos)} días guardados en {SALIDA}.")
     if fallos:
         print("Días a revisar:", ", ".join(fallos))
     if sin_texto:
-        print("Santos sin texto en la web:", "; ".join(sin_texto))
+        print("Santos sin texto:", "; ".join(sin_texto))
+    else:
+        print("Todos los santos tienen texto.")
 
 
 if __name__ == "__main__":
