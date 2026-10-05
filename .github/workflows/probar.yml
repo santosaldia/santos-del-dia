@@ -1,0 +1,22 @@
+name: Probar scraper
+
+on:
+  workflow_dispatch:
+    inputs:
+      dia:
+        description: "Día a probar (formato MM-DD, por ejemplo 10-05)"
+        required: true
+        default: "10-05"
+
+jobs:
+  probar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install requests beautifulsoup4
+      - run: python scrape_textos.py --probar "$DIA"
+        env:
+          DIA: ${{ inputs.dia }}
