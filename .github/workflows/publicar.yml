@@ -1,0 +1,33 @@
+name: Publicar santo del día
+
+on:
+  workflow_dispatch:
+    inputs:
+      dia:
+        description: "Día en formato MM-DD (vacío = hoy)"
+        required: false
+        default: ""
+      simular:
+        description: "Simular: no publica nada"
+        type: boolean
+        default: true
+
+jobs:
+  publicar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install requests beautifulsoup4
+      - name: Publicar
+        env:
+          IG_TOKEN: ${{ secrets.IG_TOKEN }}
+          DIA: ${{ inputs.dia }}
+          SIMULAR: ${{ inputs.simular }}
+        run: |
+          ARGS=""
+          if [ -n "$DIA" ]; then ARGS="$ARGS --dia $DIA"; fi
+          if [ "$SIMULAR" = "true" ]; then ARGS="$ARGS --simular"; fi
+          python publicar.py $ARGS
