@@ -1,0 +1,44 @@
+name: Prueba vídeo con escenas IA
+
+on:
+  workflow_dispatch:
+    inputs:
+      dia:
+        description: "Día en formato MM-DD (tiene que existir escenas/MM-DD.json)"
+        required: true
+        default: "10-05"
+
+permissions:
+  contents: write
+
+jobs:
+  video:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Instalar programas
+        run: |
+          sudo apt-get update -q
+          sudo apt-get install -y -q ffmpeg fonts-ebgaramond fonts-dejavu-core
+          pip install requests beautifulsoup4 pillow "edge-tts>=7.0"
+
+      - name: Crear el vídeo
+        run: python video_escenas.py --dia ${{ inputs.dia }} --salida prueba_${{ inputs.dia }}.mp4
+
+      - name: Guardar el resultado en la rama prueba-video
+        run: |
+          mkdir -p /tmp/out && cp prueba_*.mp4 /tmp/out/ && cp -r escenas_img /tmp/out/
+          git config user.name "github-actions"
+          git config user.email "github-actions@users.noreply.github.com"
+          git checkout --orphan prueba-video
+          git rm -rq --cached .
+          find . -mindepth 1 -maxdepth 1 ! -name .git -exec rm -rf {} +
+          cp -r /tmp/out/* .
+          git add -A
+          git commit -qm "Prueba de vídeo ${{ inputs.dia }}"
+          git push -f origin prueba-video

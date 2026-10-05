@@ -1,0 +1,50 @@
+{
+  "titulo": "Santos Plácido y Mauro · Santa Faustina Kowalska",
+  "escenas": [
+    {
+      "texto": "Cinco de octubre. Hoy celebramos a tres santos.",
+      "rotulo": "",
+      "prompt": "interior of an ancient stone church at dawn, golden sunlight streaming through a high window onto a simple altar with candles, incense smoke in the light beams"
+    },
+    {
+      "texto": "Plácido y Mauro eran dos muchachos confiados a san Benito en Subiaco, y llegaron a ser sus discípulos más queridos.",
+      "rotulo": "Santos Plácido y Mauro",
+      "prompt": "Saint Benedict, elderly monk with long white beard in a black Benedictine habit, teaching two young boys in black monk robes inside a rustic mountain monastery carved into rock, Subiaco, Italy, 6th century"
+    },
+    {
+      "texto": "Un día, el pequeño Plácido cayó a un lago, y la corriente empezó a arrastrarlo.",
+      "rotulo": "",
+      "prompt": "a young boy in a black monk robe fallen into a dark mountain lake, struggling in the water, reaching up, dramatic stormy sky, rocky shore with a monastery in the distance"
+    },
+    {
+      "texto": "San Benito lo supo por revelación divina, y envió a Mauro a salvarlo.",
+      "rotulo": "",
+      "prompt": "elderly Saint Benedict with white beard praying in a dim stone cell, a ray of heavenly light falling on him, urgently pointing toward the door while a young monk in black robe turns to run"
+    },
+    {
+      "texto": "Y Mauro, por obediencia, corrió sobre las aguas y lo sacó con vida.",
+      "rotulo": "",
+      "prompt": "miracle of a young monk in black robe walking on the surface of a lake, pulling a drowning boy out of the water by the hand, divine golden light breaking through clouds, reflections on the water"
+    },
+    {
+      "texto": "Siglos después, en Polonia, vivió una humilde monja llamada Faustina Kowalska.",
+      "rotulo": "Santa Faustina Kowalska",
+      "prompt": "young Polish nun in a 1930s black habit with white collar and black veil, kneeling in prayer in a quiet convent chapel in Poland, soft window light, rosary in her hands"
+    },
+    {
+      "texto": "A ella Jesús le confió el mensaje de la Divina Misericordia.",
+      "rotulo": "",
+      "prompt": "Jesus Christ in a white robe appearing in glory, two rays of light, one pale white and one red, streaming from his heart, a young nun in black habit kneeling before him in awe"
+    },
+    {
+      "texto": "Y le pidió difundir por todo el mundo una oración sencilla: Jesús, en ti confío.",
+      "rotulo": "",
+      "prompt": "young nun in black habit writing in a diary by candlelight at a wooden desk in a simple convent cell, crucifix on the wall, warm candle glow"
+    },
+    {
+      "texto": "Santos Plácido, Mauro y Faustina, rogad por nosotros. Síguenos en Santos al Día.",
+      "rotulo": "",
+      "prompt": "sunrise over a peaceful lake surrounded by mountains, a small monastery on the hillside, golden heavenly light rays through the clouds"
+    }
+  ]
+}
