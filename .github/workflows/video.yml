@@ -1,0 +1,68 @@
+name: Vídeo del santo del día
+
+on:
+  schedule:
+    - cron: "17 11 * * *"
+    - cron: "17 12 * * *"
+  workflow_dispatch:
+    inputs:
+      dia:
+        description: "Día en formato MM-DD (vacío = hoy)"
+        required: false
+        default: ""
+      publicar:
+        description: "Publicar en Instagram (si no, solo crea el vídeo para verlo)"
+        type: boolean
+        default: false
+
+jobs:
+  video:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Comprobar la hora
+        id: hora
+        env:
+          EVENTO: ${{ github.event_name }}
+        run: |
+          H=$(TZ=Europe/Madrid date +%H)
+          if [ "$EVENTO" = "schedule" ] && [ "$((10#$H))" -lt 13 ]; then
+            echo "Son las $H h en Madrid: aún no toca. Esta ejecución no hace nada."
+            echo "toca=no" >> "$GITHUB_OUTPUT"
+          else
+            echo "toca=si" >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: actions/setup-python@v5
+        if: steps.hora.outputs.toca == 'si'
+        with:
+          python-version: "3.12"
+
+      - name: Instalar programas
+        if: steps.hora.outputs.toca == 'si'
+        run: |
+          sudo apt-get update -q
+          sudo apt-get install -y -q ffmpeg fonts-ebgaramond fonts-dejavu-core
+          pip install requests beautifulsoup4 pillow "edge-tts>=7.0"
+
+      - name: Crear y publicar el vídeo
+        if: steps.hora.outputs.toca == 'si'
+        env:
+          IG_TOKEN: ${{ secrets.IG_TOKEN }}
+          DIA: ${{ inputs.dia }}
+          PUBLICAR: ${{ github.event_name == 'schedule' || inputs.publicar }}
+        run: |
+          ARGS=""
+          if [ -n "$DIA" ]; then ARGS="$ARGS --dia $DIA"; fi
+          if [ "$PUBLICAR" = "true" ]; then ARGS="$ARGS --publicar"; fi
+          python crear_video.py $ARGS
+
+      - name: Guardar el vídeo para poder descargarlo
+        if: steps.hora.outputs.toca == 'si' && always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: video-del-dia
+          path: video.mp4
+          if-no-files-found: ignore
+          retention-days: 7

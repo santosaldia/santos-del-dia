@@ -77,8 +77,9 @@ def esperar(token, contenedor):
 
 def ya_publicado(token, pie):
     primera = pie.splitlines()[0]
-    recientes = api("GET", "me/media", token, fields="caption", limit=10).get("data", [])
-    return any((m.get("caption") or "").splitlines()[:1] == [primera] for m in recientes)
+    recientes = api("GET", "me/media", token, fields="caption,media_type", limit=10).get("data", [])
+    return any(m.get("media_type") != "VIDEO" and (m.get("caption") or "").splitlines()[:1] == [primera]
+               for m in recientes)  # los Reels (VIDEO) no cuentan: son otra publicación
 
 
 def etiqueta(texto):
