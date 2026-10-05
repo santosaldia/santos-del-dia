@@ -1,6 +1,9 @@
 name: Publicar santo del día
 
 on:
+  schedule:
+    - cron: "17 6 * * *"
+    - cron: "17 7 * * *"
   workflow_dispatch:
     inputs:
       dia:
@@ -12,16 +15,39 @@ on:
         type: boolean
         default: true
 
+permissions:
+  contents: write
+
 jobs:
   publicar:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
+      - name: Comprobar la hora
+        id: hora
+        env:
+          EVENTO: ${{ github.event_name }}
+        run: |
+          H=$(TZ=Europe/Madrid date +%H)
+          if [ "$EVENTO" = "schedule" ] && [ "$((10#$H))" -lt 8 ]; then
+            echo "Son las $H h en Madrid: aún no toca. Esta ejecución no hace nada."
+            echo "toca=no" >> "$GITHUB_OUTPUT"
+          else
+            echo "toca=si" >> "$GITHUB_OUTPUT"
+          fi
+
       - uses: actions/setup-python@v5
+        if: steps.hora.outputs.toca == 'si'
         with:
           python-version: "3.12"
-      - run: pip install requests beautifulsoup4
+
+      - name: Instalar dependencias
+        if: steps.hora.outputs.toca == 'si'
+        run: pip install requests beautifulsoup4
+
       - name: Publicar
+        if: steps.hora.outputs.toca == 'si'
         env:
           IG_TOKEN: ${{ secrets.IG_TOKEN }}
           DIA: ${{ inputs.dia }}
@@ -31,3 +57,17 @@ jobs:
           if [ -n "$DIA" ]; then ARGS="$ARGS --dia $DIA"; fi
           if [ "$SIMULAR" = "true" ]; then ARGS="$ARGS --simular"; fi
           python publicar.py $ARGS
+
+      - name: Mantener activo el repositorio
+        if: github.event_name == 'schedule'
+        run: |
+          ultimo=$(git log -1 --format=%ct)
+          ahora=$(date +%s)
+          if [ $((ahora - ultimo)) -gt 3888000 ]; then
+            date -u +"%Y-%m-%d" > .keepalive
+            git config user.name "github-actions"
+            git config user.email "github-actions@users.noreply.github.com"
+            git add .keepalive
+            git commit -m "Mantener activo el repositorio"
+            git push
+          fi
