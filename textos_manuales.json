@@ -1,14 +1,44 @@
 {
+  "02-29": [
+    {
+      "nombre": "s. Hilario, papa",
+      "texto": "Hilario, de origen sardo, fue elegido Papa en el año 461 y gobernó la Iglesia hasta su muerte, ocurrida un 29 de febrero del año 468. Antes, como legado de san León Magno, defendió la fe en el conflictivo concilio de Éfeso del año 449, del que logró escapar con vida. Como Papa se esforzó por mantener la unidad de la Iglesia y la disciplina del clero, y defendió la doctrina del Concilio de Calcedonia."
+    }
+  ],
   "07-07": [
     {
       "nombre": "Festividad de todos los Pontífices Romanos",
       "texto": "En este día se celebra en la Basílica de San Pedro la fiesta de todos los Papas, santos y beatos. La Iglesia invita a los fieles a rezar por los Papas, como Jesús rezó por Pedro, para que puedan confirmar a sus hermanos en la fe."
     }
   ],
+  "07-27": [
+    {
+      "nombre": "s. Simeón Estilita",
+      "texto": "Monje siriaco que eligió vivir en lo alto de una columna, de ahí el nombre de «estilita» (del griego stylos, columna), dedicado por entero a la oración y a la penitencia. Desde allí aconsejaba a quienes acudían a él, y su ejemplo atrajo a numerosos peregrinos y discípulos."
+    }
+  ],
+  "09-17": [
+    {
+      "nombre": "Santa Hildegarda de Bingen",
+      "texto": "Hildegarda de Bingen (1098-1179), abadesa benedictina alemana, fue mística, escritora, compositora y gran conocedora de la medicina natural. Desde joven tuvo visiones que puso por escrito en obras como el Scivias. Fundó monasterios y mantuvo correspondencia con Papas y emperadores. En 2012 Benedicto XVI la proclamó Doctora de la Iglesia."
+    }
+  ],
   "10-02": [
     {
       "nombre": "ss. Ángeles Custodios",
       "texto": "Cada 2 de octubre la Iglesia celebra a los Santos Ángeles Custodios, los ángeles de la guarda. Según la fe católica, Dios encomienda a sus ángeles el cuidado de cada persona, como recuerdan el Salmo 90 y las palabras de Jesús en el Evangelio de san Mateo (18,10). Su fiesta se celebra desde el siglo XVII."
+    }
+  ],
+  "11-21": [
+    {
+      "nombre": "Presentación de la B. virgen María",
+      "texto": "La Iglesia recuerda hoy la presentación de la Virgen María en el templo de Jerusalén. Según una antigua tradición, que no aparece en los Evangelios, sus padres, Joaquín y Ana, la consagraron a Dios siendo niña. Esta memoria nació en Oriente y se extendió después a toda la Iglesia: recuerda la entrega total de María a Dios, que culminaría con su «sí» en la Anunciación."
+    }
+  ],
+  "12-09": [
+    {
+      "nombre": "S. Pedro Fourier, canónigo regular",
+      "texto": "Pedro Fourier (1565-1640), canónigo regular de san Agustín, fue párroco de Mattaincourt, en Lorena (Francia). Transformó su parroquia con su celo pastoral y su atención a los pobres y, junto con Alix Le Clerc, fundó la Congregación de Nuestra Señora para educar gratuitamente a las niñas. Impulsó además la reforma de su orden."
     }
   ]
 }
