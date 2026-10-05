@@ -8,8 +8,10 @@
 import argparse
 import json
 import os
+import re
 import sys
 import time
+import unicodedata
 from datetime import datetime
 from pathlib import Path
 from urllib.parse import quote
@@ -23,6 +25,15 @@ REPO = "santosaldia/santos-del-dia"
 RAMA = "main"
 API = "https://graph.instagram.com/v23.0"
 EXTENSIONES = (".jpg", ".jpeg")  # Instagram solo admite JPEG por API
+FIJOS = ["#santos", "#santodeldia", "#santosaldia"]
+MAX_HASHTAGS_SANTOS = 6
+MAX_LARGO_HASHTAG = 30
+TITULO = re.compile(r"^(ss?\.?|st\.|b\.|san|santa|santos|santo|beato|beata)\s+", re.I)
+CORTE = re.compile(
+    r"\s+(viuda|virgen|obispo|arzobispo|papa|martir|mártir|sacerdote|abad|abadesa|monje|"
+    r"religios[oa]|diácono|fundador[a]?|esposo|patrón|patrona|cardenal|que)\b.*$",
+    re.I,
+)
 
 
 def api(metodo, ruta, token, **params):
@@ -70,6 +81,41 @@ def ya_publicado(token, pie):
     return any((m.get("caption") or "").splitlines()[:1] == [primera] for m in recientes)
 
 
+def etiqueta(texto):
+    t = unicodedata.normalize("NFD", texto.lower())
+    t = "".join(c for c in t if unicodedata.category(c) != "Mn")
+    return re.sub(r"[^a-z0-9]", "", t)
+
+
+def hashtags_de(santos):
+    """#santos #santodeldia #santosaldia + un hashtag por santo (a partir de su nombre)."""
+    tags = list(FIJOS)
+    for s in santos:
+        nombre = s["nombre"].strip()
+        plural = bool(re.match(r"^ss\.?\s", nombre, re.I))
+        con_titulo = bool(TITULO.match(nombre))
+        nombre = TITULO.sub("", nombre)
+        nombre = re.split(r"[,(]", nombre)[0]
+        if con_titulo:  # solo recortamos cargos ("obispo", "viuda"...) en nombres de santos
+            nombre = CORTE.sub("", nombre)
+        nombre = nombre.strip()
+        partes = re.split(r"\s+y\s+", nombre) if plural else [nombre]
+        for p in partes:
+            e = etiqueta(p)
+            tag = "#" + e
+            if e and len(e) <= MAX_LARGO_HASHTAG and tag not in tags:
+                tags.append(tag)
+        if len(tags) >= len(FIJOS) + MAX_HASHTAGS_SANTOS:
+            break
+    return " ".join(tags[: len(FIJOS) + MAX_HASHTAGS_SANTOS])
+
+
+def construir_texto(santos):
+    """Pie de foto final: texto de los santos + hashtags (máx. 2.200 caracteres)."""
+    tags = hashtags_de(santos)
+    return construir_pie(santos, limite=2100 - len(tags)) + "\n\n" + tags
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--dia", help="MM-DD; por defecto, hoy (hora de Madrid)")
@@ -87,7 +133,7 @@ def main():
     if len(imgs) > 10:
         sys.exit(f"Hay {len(imgs)} imágenes para {clave}; Instagram admite como máximo 10.")
 
-    pie = construir_pie(textos[clave])
+    pie = construir_texto(textos[clave])
     urls = [url_publica(p) for p in imgs]
 
     print(f"Día: {clave}  |  Imágenes: {len(urls)}  |  Caracteres del texto: {len(pie)}")
