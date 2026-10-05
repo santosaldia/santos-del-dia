@@ -573,6 +573,10 @@
   {
    "nombre": "S. Augusto Chapdelaine, mártir",
    "texto": "Sacerdote francés de la Sociedad de las Misiones Extranjeras de París, partió como misionero a China en 1852. En Xilinxian, provincia de Guangxi, obtuvo muchas conversiones pero su presencia fue denunciada al mandarín Hien, enemigo de los cristianos, que lo encarceló y lo hizo decapitar."
+  },
+  {
+   "nombre": "s. Hilario, papa",
+   "texto": ""
   }
  ],
  "03-01": [
@@ -2021,6 +2025,10 @@
   {
    "nombre": "s. Celestino I, papa",
    "texto": "Celestino I fue Papa desde el 422 hasta el 432. Durante su Pontificado hizo restaurar y construir muchas basílicas en Roma pero, sobre todo, se lo recuerda como un arduo defensor de la pureza de la fe contra las herejías de Pelagio y Nestorio, condenado públicamente en el Sínodo de Roma."
+  },
+  {
+   "nombre": "s. Simeón Estilita",
+   "texto": ""
   }
  ],
  "07-28": [
@@ -2581,6 +2589,10 @@
   {
    "nombre": "s. Colomba, virgen y mártir de Cordoba",
    "texto": "Atraída por un grande amor al Señor, Colomba le dedicò totalmente su vida en un monasterio cerca de Córdoba, España. Ejemplo de santidad y grande estudiosa de la Escritura, durante la persecución de los Moros, desobedeció a los obispos y se autodenunció como cristiana. Murió mártir en 853."
+  },
+  {
+   "nombre": "Santa Hildegarda de Bingen",
+   "texto": ""
   }
  ],
  "09-18": [
@@ -2737,6 +2749,12 @@
   {
    "nombre": "s. Teresa del Niño Jesús, virgen carmelita, doctora de la Iglesia, patrona de las Misiones",
    "texto": "Santa Teresa de Lisieux o Santa Teresita del Niño Jesús es la patrona de los misioneros y de Francia. En el centenario de su muerte, en 1997, Juan Pablo II la proclamó doctora de la Iglesia; fue la tercera mujer homenajeada con este título, después de Caterina de Siena y Teresa de Ávila ."
+  }
+ ],
+ "10-02": [
+  {
+   "nombre": "ss. Ángeles Custodios",
+   "texto": "Cada 2 de octubre la Iglesia celebra a los Santos Ángeles Custodios, los ángeles de la guarda. Según la fe católica, Dios encomienda a sus ángeles el cuidado de cada persona, como recuerdan el Salmo 90 y las palabras de Jesús en el Evangelio de san Mateo (18,10). Su fiesta se celebra desde el siglo XVII."
   }
  ],
  "10-03": [
@@ -3197,6 +3215,10 @@
   {
    "nombre": "b. María de Jesús Buen Pastor, fundadora de las Hermanas de la Sagrada Familia de Nazaret",
    "texto": "Hija de la Polonia nobiliaria de finales de 1800, Francesca Siedliska supera sus enfermedades y las ambiciones de su padre por un buen matrimonio, y se consagra a los 31 años. En 1873 funda la congregación de las Religiosas de la Sagrada Familia de Nazaret, para reforzar la fe de las personas."
+  },
+  {
+   "nombre": "Presentación de la B. virgen María",
+   "texto": ""
   }
  ],
  "11-22": [
@@ -3373,6 +3395,10 @@
   {
    "nombre": "s. Siro, obispo de Pavia",
    "texto": "Por un error que duró siglos se dijo que Sirio había sido el joven que ofreció los panes y peces que Jesús multiplicó milagrosamente. En realidad, Sirio fue el primer obispo de Pavia, consagrado en el siglo IV, fue un pastor itinerante e incansable que evangelizó una vasta zona del norte de Italia."
+  },
+  {
+   "nombre": "S. Pedro Fourier, canónigo regular",
+   "texto": ""
   }
  ],
  "12-10": [
@@ -3581,6 +3607,12 @@
   {
    "nombre": "s. Melania, matrona romana",
    "texto": "Melania, llamada \"la Joven\", pertenecía a la noble familia Valeria. Se mudó a Jerusalén con su marido Piniano y fundó una especie de comunidad monástica basada en el modelo de las comunidades orientales del siglo V. Allí Murió en el 440 después de haber compartido sus bienes con los pobres."
+  }
+ ],
+ "07-07": [
+  {
+   "nombre": "Festividad de todos los Pontífices Romanos",
+   "texto": "En este día se celebra en la Basílica de San Pedro la fiesta de todos los Papas, santos y beatos. La Iglesia invita a los fieles a rezar por los Papas, como Jesús rezó por Pedro, para que puedan confirmar a sus hermanos en la fe."
   }
  ]
 }
