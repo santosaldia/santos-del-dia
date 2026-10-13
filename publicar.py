@@ -1,174 +1,76 @@
-#!/usr/bin/env python3
-"""Publica en Instagram el santo del día: imagen(es) del repositorio + texto de textos.json.
+name: Publicar santo del día
 
-    python publicar.py --simular            # enseña qué publicaría hoy, sin publicar
-    python publicar.py --dia 10-05 --simular
-    python publicar.py                      # publica de verdad el día de hoy
-"""
-import argparse
-import json
-import os
-import re
-import sys
-import time
-import unicodedata
-from datetime import datetime
-from pathlib import Path
-from urllib.parse import quote
-from zoneinfo import ZoneInfo
+on:
+  schedule:
+    - cron: "7,37 6-8 * * *"
+  workflow_dispatch:
+    inputs:
+      dia:
+        description: "Día en formato MM-DD (vacío = hoy)"
+        required: false
+        default: ""
+      simular:
+        description: "Simular: no publica nada"
+        type: boolean
+        default: true
 
-import requests
+permissions:
+  contents: write
 
-from scrape_textos import construir_pie
+concurrency:
+  group: publicar
+  cancel-in-progress: false
 
-REPO = "santosaldia/santos-del-dia"
-RAMA = "main"
-API = "https://graph.instagram.com/v23.0"
-EXTENSIONES = (".jpg", ".jpeg")  # Instagram solo admite JPEG por API
-FIJOS = ["#santos", "#santodeldia", "#santosaldia"]
-MAX_HASHTAGS_SANTOS = 6
-MAX_LARGO_HASHTAG = 30
-TITULO = re.compile(r"^(ss?\.?|st\.|b\.|san|santa|santos|santo|beato|beata)\s+", re.I)
-CORTE = re.compile(
-    r"\s+(viuda|virgen|obispo|arzobispo|papa|martir|mártir|sacerdote|abad|abadesa|monje|"
-    r"religios[oa]|diácono|fundador[a]?|esposo|patrón|patrona|cardenal|que)\b.*$",
-    re.I,
-)
+jobs:
+  publicar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
 
+      - name: Comprobar la hora
+        id: hora
+        env:
+          EVENTO: ${{ github.event_name }}
+        run: |
+          H=$(TZ=Europe/Madrid date +%H)
+          if [ "$EVENTO" = "schedule" ] && [ "$((10#$H))" -lt 8 ]; then
+            echo "Son las $H h en Madrid: aún no toca. Esta ejecución no hace nada."
+            echo "toca=no" >> "$GITHUB_OUTPUT"
+          else
+            echo "toca=si" >> "$GITHUB_OUTPUT"
+          fi
 
-def api(metodo, ruta, token, **params):
-    params["access_token"] = token
-    r = requests.request(
-        metodo,
-        f"{API}/{ruta}",
-        params=params if metodo == "GET" else None,
-        data=params if metodo == "POST" else None,
-        timeout=60,
-    )
-    try:
-        datos = r.json()
-    except ValueError:
-        datos = {}
-    if "error" in datos or not r.ok:
-        err = datos.get("error", {})
-        sys.exit(f"Error de Instagram en '{ruta}': {err.get('message', r.text[:200])} (código {err.get('code')})")
-    return datos
+      - uses: actions/setup-python@v5
+        if: steps.hora.outputs.toca == 'si'
+        with:
+          python-version: "3.12"
 
+      - name: Instalar dependencias
+        if: steps.hora.outputs.toca == 'si'
+        run: pip install requests beautifulsoup4
 
-def imagenes_del_dia(clave):
-    mm, dd = clave.split("-")
-    return sorted(p for p in Path(".").glob(f"{mm}_{dd}*") if p.suffix.lower() in EXTENSIONES)
+      - name: Publicar
+        if: steps.hora.outputs.toca == 'si'
+        env:
+          IG_TOKEN: ${{ secrets.IG_TOKEN }}
+          DIA: ${{ inputs.dia }}
+          SIMULAR: ${{ inputs.simular }}
+        run: |
+          ARGS=""
+          if [ -n "$DIA" ]; then ARGS="$ARGS --dia $DIA"; fi
+          if [ "$SIMULAR" = "true" ]; then ARGS="$ARGS --simular"; fi
+          python publicar.py $ARGS
 
-
-def url_publica(ruta):
-    return f"https://raw.githubusercontent.com/{REPO}/{RAMA}/{quote(ruta.name)}"
-
-
-def esperar(token, contenedor):
-    for _ in range(30):
-        estado = api("GET", contenedor, token, fields="status_code").get("status_code")
-        if estado == "FINISHED":
-            return
-        if estado in ("ERROR", "EXPIRED"):
-            sys.exit(f"Instagram no ha podido procesar la imagen (estado {estado}).")
-        time.sleep(4)
-    sys.exit("Instagram tarda demasiado en procesar la imagen.")
-
-
-def ya_publicado(token, pie):
-    primera = pie.splitlines()[0]
-    recientes = api("GET", "me/media", token, fields="caption,media_type", limit=10).get("data", [])
-    return any(m.get("media_type") != "VIDEO" and (m.get("caption") or "").splitlines()[:1] == [primera]
-               for m in recientes)  # los Reels (VIDEO) no cuentan: son otra publicación
-
-
-def etiqueta(texto):
-    t = unicodedata.normalize("NFD", texto.lower())
-    t = "".join(c for c in t if unicodedata.category(c) != "Mn")
-    return re.sub(r"[^a-z0-9]", "", t)
-
-
-def hashtags_de(santos):
-    """#santos #santodeldia #santosaldia + un hashtag por santo (a partir de su nombre)."""
-    tags = list(FIJOS)
-    for s in santos:
-        nombre = s["nombre"].strip()
-        plural = bool(re.match(r"^ss\.?\s", nombre, re.I))
-        con_titulo = bool(TITULO.match(nombre))
-        nombre = TITULO.sub("", nombre)
-        nombre = re.split(r"[,(]", nombre)[0]
-        if con_titulo:  # solo recortamos cargos ("obispo", "viuda"...) en nombres de santos
-            nombre = CORTE.sub("", nombre)
-        nombre = nombre.strip()
-        partes = re.split(r"\s+y\s+", nombre) if plural else [nombre]
-        for p in partes:
-            e = etiqueta(p)
-            tag = "#" + e
-            if e and len(e) <= MAX_LARGO_HASHTAG and tag not in tags:
-                tags.append(tag)
-        if len(tags) >= len(FIJOS) + MAX_HASHTAGS_SANTOS:
-            break
-    return " ".join(tags[: len(FIJOS) + MAX_HASHTAGS_SANTOS])
-
-
-def construir_texto(santos):
-    """Pie de foto final: texto de los santos + hashtags (máx. 2.200 caracteres)."""
-    tags = hashtags_de(santos)
-    return construir_pie(santos, limite=2100 - len(tags)) + "\n\n" + tags
-
-
-def main():
-    ap = argparse.ArgumentParser()
-    ap.add_argument("--dia", help="MM-DD; por defecto, hoy (hora de Madrid)")
-    ap.add_argument("--simular", action="store_true", help="no publica, solo enseña lo que haría")
-    ap.add_argument("--forzar", action="store_true", help="publica aunque parezca ya publicado")
-    args = ap.parse_args()
-
-    clave = args.dia or datetime.now(ZoneInfo("Europe/Madrid")).strftime("%m-%d")
-    textos = json.loads(Path("textos.json").read_text("utf-8"))
-    if clave not in textos:
-        sys.exit(f"No hay texto para el día {clave} en textos.json.")
-    imgs = imagenes_del_dia(clave)
-    if not imgs:
-        sys.exit(f"No hay ninguna imagen .jpg para el día {clave} en el repositorio.")
-    if len(imgs) > 10:
-        sys.exit(f"Hay {len(imgs)} imágenes para {clave}; Instagram admite como máximo 10.")
-
-    pie = construir_texto(textos[clave])
-    urls = [url_publica(p) for p in imgs]
-
-    print(f"Día: {clave}  |  Imágenes: {len(urls)}  |  Caracteres del texto: {len(pie)}")
-    for u in urls:
-        print("  ", u)
-    print("---- TEXTO ----")
-    print(pie)
-    print("---------------")
-
-    if args.simular:
-        for u in urls:
-            r = requests.head(u, timeout=30, allow_redirects=True)
-            print(f"Comprobación de imagen: {'OK' if r.ok else 'NO ACCESIBLE (' + str(r.status_code) + ')'}  {u}")
-        print("Simulación terminada: no se ha publicado nada.")
-        return
-
-    token = os.environ.get("IG_TOKEN", "").strip()
-    if not token:
-        sys.exit("Falta el secreto IG_TOKEN.")
-    if not args.forzar and ya_publicado(token, pie):
-        print("Parece que este día ya está publicado. No hago nada (usa --forzar para publicar igualmente).")
-        return
-
-    if len(urls) == 1:
-        cont = api("POST", "me/media", token, image_url=urls[0], caption=pie)["id"]
-    else:
-        hijos = [api("POST", "me/media", token, image_url=u, is_carousel_item="true")["id"] for u in urls]
-        for h in hijos:
-            esperar(token, h)
-        cont = api("POST", "me/media", token, media_type="CAROUSEL", children=",".join(hijos), caption=pie)["id"]
-    esperar(token, cont)
-    publicado = api("POST", "me/media_publish", token, creation_id=cont)
-    print("Publicado correctamente. ID:", publicado.get("id"))
-
-
-if __name__ == "__main__":
-    main()
+      - name: Mantener activo el repositorio
+        if: github.event_name == 'schedule'
+        run: |
+          ultimo=$(git log -1 --format=%ct)
+          ahora=$(date +%s)
+          if [ $((ahora - ultimo)) -gt 3888000 ]; then
+            date -u +"%Y-%m-%d" > .keepalive
+            git config user.name "github-actions"
+            git config user.email "github-actions@users.noreply.github.com"
+            git add .keepalive
+            git commit -m "Mantener activo el repositorio"
+            git push
+          fi
